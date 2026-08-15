@@ -39,8 +39,14 @@ def study():
             if session.get('current_index', 0) >= len(filtered):
                 session['current_index'] = 0
 
+    # Обработка POST
     if request.method == 'POST':
         user_input = request.form.get('word', '').strip()
+        # Проверка на пустое поле
+        if not user_input:
+            session['error'] = 'Пожалуйста, введите слово.'
+            return redirect(url_for('study'))
+
         current_index = session.get('current_index', 0)
         words_left = session.get('words_left', [])
 
@@ -60,10 +66,12 @@ def study():
             session['current_index'] = current_index + 1
         return redirect(url_for('study'))
 
+    # GET – отображение
     result = session.pop('result', None)
     correct_word = session.pop('correct_word', None)
     correct_meaning = session.pop('correct_meaning', None)
     user_input = session.pop('user_input', None)
+    error = session.pop('error', None)  # извлекаем ошибку
 
     words_left = session.get('words_left', [])
     current_index = session.get('current_index', 0)
@@ -89,7 +97,8 @@ def study():
         correct_word=correct_word,
         correct_meaning=correct_meaning,
         user_input=user_input,
-        progress=progress
+        progress=progress,
+        error=error  # передаём ошибку
     )
 
 @app.route('/reset')
