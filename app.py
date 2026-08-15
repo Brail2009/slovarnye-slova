@@ -1,9 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from flask_session import Session
+from flask_session2 import Session
 import random
 from data import ALL_WORDS
-import traceback
-import sys
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
@@ -28,76 +26,71 @@ def reset_and_start():
 
 @app.route('/study', methods=['GET', 'POST'])
 def study():
-    try:
-        if 'words_left' not in session:
-            keys = list(ALL_WORDS.keys())
-            random.shuffle(keys)
-            session['words_left'] = keys
-            session['current_index'] = 0
-        else:
-            words_left = session.get('words_left', [])
-            filtered = [w for w in words_left if w in ALL_WORDS]
-            if len(filtered) != len(words_left):
-                session['words_left'] = filtered
-                if session.get('current_index', 0) >= len(filtered):
-                    session['current_index'] = 0
-
-        if request.method == 'POST':
-            user_input = request.form.get('word', '').strip()
-            current_index = session.get('current_index', 0)
-            words_left = session.get('words_left', [])
-
-            if current_index < len(words_left):
-                current_word_key = words_left[current_index]
-                if current_word_key not in ALL_WORDS:
-                    session['words_left'] = [w for w in words_left if w != current_word_key]
-                    return redirect(url_for('study'))
-
-                session['user_input'] = user_input
-                if normalize(user_input) == normalize(current_word_key):
-                    session['result'] = 'correct'
-                else:
-                    session['result'] = 'incorrect'
-                session['correct_word'] = current_word_key
-                session['correct_meaning'] = ALL_WORDS[current_word_key]['значение']
-                session['current_index'] = current_index + 1
-            return redirect(url_for('study'))
-
-        result = session.pop('result', None)
-        correct_word = session.pop('correct_word', None)
-        correct_meaning = session.pop('correct_meaning', None)
-        user_input = session.pop('user_input', None)
-
+    if 'words_left' not in session:
+        keys = list(ALL_WORDS.keys())
+        random.shuffle(keys)
+        session['words_left'] = keys
+        session['current_index'] = 0
+    else:
         words_left = session.get('words_left', [])
+        filtered = [w for w in words_left if w in ALL_WORDS]
+        if len(filtered) != len(words_left):
+            session['words_left'] = filtered
+            if session.get('current_index', 0) >= len(filtered):
+                session['current_index'] = 0
+
+    if request.method == 'POST':
+        user_input = request.form.get('word', '').strip()
         current_index = session.get('current_index', 0)
+        words_left = session.get('words_left', [])
 
-        if not words_left or current_index >= len(words_left):
-            return render_template('finish.html', total=len(words_left))
+        if current_index < len(words_left):
+            current_word_key = words_left[current_index]
+            if current_word_key not in ALL_WORDS:
+                session['words_left'] = [w for w in words_left if w != current_word_key]
+                return redirect(url_for('study'))
 
-        current_word_key = words_left[current_index]
-        if current_word_key not in ALL_WORDS:
-            session['words_left'] = [w for w in words_left if w != current_word_key]
-            return redirect(url_for('study'))
+            session['user_input'] = user_input
+            if normalize(user_input) == normalize(current_word_key):
+                session['result'] = 'correct'
+            else:
+                session['result'] = 'incorrect'
+            session['correct_word'] = current_word_key
+            session['correct_meaning'] = ALL_WORDS[current_word_key]['значение']
+            session['current_index'] = current_index + 1
+        return redirect(url_for('study'))
 
-        word_data = ALL_WORDS[current_word_key]
-        sentence = word_data['sentence']
-        meaning = word_data['значение']
-        progress = f"{current_index + 1}/{len(words_left)}"
+    result = session.pop('result', None)
+    correct_word = session.pop('correct_word', None)
+    correct_meaning = session.pop('correct_meaning', None)
+    user_input = session.pop('user_input', None)
 
-        return render_template(
-            'study.html',
-            sentence=sentence,
-            meaning=meaning,
-            result=result,
-            correct_word=correct_word,
-            correct_meaning=correct_meaning,
-            user_input=user_input,
-            progress=progress
-        )
-    except Exception as e:
-        print("Ошибка в /study:", file=sys.stderr)
-        traceback.print_exc(file=sys.stderr)
-        return "Internal Server Error", 500
+    words_left = session.get('words_left', [])
+    current_index = session.get('current_index', 0)
+
+    if not words_left or current_index >= len(words_left):
+        return render_template('finish.html', total=len(words_left))
+
+    current_word_key = words_left[current_index]
+    if current_word_key not in ALL_WORDS:
+        session['words_left'] = [w for w in words_left if w != current_word_key]
+        return redirect(url_for('study'))
+
+    word_data = ALL_WORDS[current_word_key]
+    sentence = word_data['sentence']
+    meaning = word_data['значение']
+    progress = f"{current_index + 1}/{len(words_left)}"
+
+    return render_template(
+        'study.html',
+        sentence=sentence,
+        meaning=meaning,
+        result=result,
+        correct_word=correct_word,
+        correct_meaning=correct_meaning,
+        user_input=user_input,
+        progress=progress
+    )
 
 @app.route('/reset')
 def reset():
