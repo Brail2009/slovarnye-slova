@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запоминание словарных слов</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5 text-center">
+        <h1>Словарные слова</h1>
+        <p class="lead">Тренажёр для запоминания правописания</p>
+        <a href="{{ url_for('study') }}" class="btn btn-primary btn-lg me-2">Начать</a>
+        <a href="{{ url_for('reset_and_start') }}" class="btn btn-warning btn-lg">Начать с начала</a>
+    </div>
+</body>
+</html>
