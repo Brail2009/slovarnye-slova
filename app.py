@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from flask_session2 import Session
+from flask_session import Session
 import random
 from data import ALL_WORDS
 
